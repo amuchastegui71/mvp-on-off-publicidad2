@@ -1,0 +1,5 @@
+id,medio,formato,ubicacion,proveedor,cpm,impresiones_previstas,fecha_desde,fecha_hasta
+101,Display,300x250,CABA,MedioX,1.8,300000,2025-11-01,2025-11-28
+102,Video,In-Stream,AMBA,MedioY,3.2,200000,2025-11-03,2025-12-03
+103,CTV,15s,CABA,MedioCTV,6.0,150000,2025-11-05,2025-12-05
+104,DOOH,Fullscreen,AMBA,MedioDOOH,2.5,250000,2025-10-30,2025-11-27
