@@ -1,50 +1,174 @@
+# pages/02_Cotizar_y_Reservar.py
 import streamlit as st
 import pandas as pd
-from utils import registrar_evento
+import numpy as np
 
-st.title("Cotizar y Reservar")
+from utils import (
+    registrar_evento,
+    preparar_plan_para_export_budget_simple,
+    totales_plan_budget_simple,
+    costo_unitario_visible,
+    get_selected_unit,
+    estimate_impressions,
+)
 
-if "carrito" not in st.session_state or len(st.session_state.carrito)==0:
-    st.warning("El carrito está vacío. Agregue inventario desde 'Buscar Inventario'.")
+st.set_page_config(page_title="Cotizar y Reservar", layout="wide")
+st.title("Cotizar y Reservar (por presupuesto)")
+
+# ------------------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------------------
+def make_uid(row) -> str:
+    """UID estable por fila para keys de widgets y borrado."""
+    parts = [
+        str(row.get("vendor", "")),
+        str(row.get("format", "")),
+        str(row.get("medium", "")),
+        str(row.get("start", "")),
+        str(row.get("end", "")),
+    ]
+    return "||".join(parts)
+
+def _fmt_date(x) -> str:
+    """Fecha YYYY-MM-DD (sin hora); vacío si no hay valor."""
+    try:
+        return pd.to_datetime(x).strftime("%Y-%m-%d")
+    except Exception:
+        return ""
+
+# ------------------------------------------------------------------------------
+# Datos del plan
+# ------------------------------------------------------------------------------
+plan = st.session_state.get("basket", pd.DataFrame())
+if plan.empty:
+    st.info("Tu plan está vacío. Volvé al **Marketplace** y agregá ítems.")
     st.stop()
 
-df = pd.DataFrame(st.session_state.carrito).copy()
+st.subheader("Resumen del plan")
 
-st.markdown("### Parámetros")
+# Evitar duplicados que puedan venir del Marketplace
+editable = (
+    plan.copy()
+    .drop_duplicates(subset=["vendor", "format", "medium", "start", "end"], keep="first")
+    .reset_index(drop=True)
+)
+
+# Estado: presupuesto entero por UID (no por índice)
+if "budget_map" not in st.session_state:
+    st.session_state.budget_map = {}
+
+rows_out = []
+
+# ------------------------------------------------------------------------------
+# Render por ítem (una sola tarjeta)
+# ------------------------------------------------------------------------------
+for i, row in editable.iterrows():
+    uid = make_uid(row)
+
+    with st.container(border=True):
+        # Fila 1: Medio / Formato / Canal / Unidad-Costo + tacho a la derecha
+        c1, c2, c3, c4, c5 = st.columns([2, 2, 2, 2, 0.6])
+        c1.markdown(f"**Medio:** {row.get('vendor', '')}")
+        c2.markdown(f"**Formato:** {row.get('format', '')}")
+        c3.markdown(f"**Canal:** {row.get('medium', '')}")
+        unidad = get_selected_unit(row)
+        unit_cost = costo_unitario_visible(row)
+        c4.markdown(f"**Unidad / Costo:** {unidad} — {unit_cost:,.2f}")
+
+        if c5.button("🗑️", key=f"del_{uid}", help="Eliminar este medio del plan"):
+            # Borrado robusto por coincidencia de campos (no por índice)
+            b = st.session_state.basket.copy()
+
+            def _s(val):
+                return "" if pd.isna(val) else str(val)
+
+            mask = (
+                (b["vendor"].astype(str) == _s(row.get("vendor", ""))) &
+                (b["format"].astype(str) == _s(row.get("format", ""))) &
+                (b["medium"].astype(str) == _s(row.get("medium", ""))) &
+                (b.get("start", "").astype(str) == _s(row.get("start", ""))) &
+                (b.get("end", "").astype(str) == _s(row.get("end", "")))
+            )
+            st.session_state.basket = b.loc[~mask].reset_index(drop=True)
+            st.session_state.budget_map.pop(uid, None)
+            st.rerun()
+
+        # Fila 2: Fechas SOLO si existen (en una línea)
+        start_raw = row.get("start", "")
+        end_raw = row.get("end", "")
+        parts = []
+        if pd.notna(start_raw) and str(start_raw) != "":
+            parts.append(f"**Inicio:** {_fmt_date(start_raw)}")
+        if pd.notna(end_raw) and str(end_raw) != "":
+            parts.append(f"**Fin:** {_fmt_date(end_raw)}")
+        if parts:
+            st.markdown(" · ".join(parts))
+
+        st.divider()
+
+        # Fila 3: Presupuesto entero + Impresiones estimadas
+        b1, b2 = st.columns([2, 4])
+        default_budget = int(st.session_state.budget_map.get(uid, 10000))
+        presupuesto = b1.number_input(
+            "Presupuesto del ítem",
+            min_value=0,
+            step=100,
+            value=default_budget,
+            format="%d",
+            key=f"budget_{uid}",
+        )
+        st.session_state.budget_map[uid] = int(presupuesto)
+
+        est_imp = estimate_impressions(row, float(presupuesto))
+        if pd.notna(est_imp):
+            b2.metric("Impresiones estimadas", f"{est_imp:,.0f}")
+        else:
+            b2.info("No hay benchmarks suficientes para estimar impresiones con la unidad seleccionada.")
+
+        # Guardar fila con presupuesto
+        cur = row.copy()
+        cur["budget"] = int(presupuesto)
+        rows_out.append(cur)
+
+# ------------------------------------------------------------------------------
+# Totales + acciones
+# ------------------------------------------------------------------------------
+plan_presupuesto = pd.DataFrame(rows_out)
+resumen = totales_plan_budget_simple(plan_presupuesto)
+
+st.divider()
 c1, c2 = st.columns(2)
-with c1:
-    presupuesto = st.number_input("Presupuesto total", min_value=0.0, value=float(df.get("precio_referencia", pd.Series([0])).sum()))
-with c2:
-    estrategia = st.selectbox("Estrategia", ["Proporcional a precio", "50% ON / 50% OFF"])
+c1.metric("Ítems", f"{resumen['items']}")
+c2.metric("Presupuesto total", f"{resumen['subtotal']:,.0f}")
 
-df["costo_estimado"] = 0.0
-mask_on = df["tipo"]=="ON"
-mask_off = df["tipo"]=="OFF"
-if mask_on.any():
-    df.loc[mask_on, "costo_estimado"] = (df.loc[mask_on, "impresiones_previstas"]/1000.0) * df.loc[mask_on, "cpm"]
-if mask_off.any():
-    df.loc[mask_off, "costo_estimado"] = df.loc[mask_off, "unidades"] * df.loc[mask_off, "tarifa_unitaria"]
+# ------------------------------------------------------------------------------
+# Acciones (un solo botón con modo)
+# ------------------------------------------------------------------------------
+st.subheader("Acciones")
 
-costo_total_ref = df["costo_estimado"].sum()
-st.metric("Costo estimado (referencia)", round(costo_total_ref,2))
+# Modo de operación: define el tipo de evento que se registra
+modo_accion = st.radio("Modo", ["Cotizar", "Reservar"], horizontal=True, key="modo_accion_unico")
 
-df["asignado"] = 0.0
-if estrategia == "Proporcional a precio" and costo_total_ref > 0:
-    df["asignado"] = presupuesto * (df["costo_estimado"] / costo_total_ref)
-elif estrategia == "50% ON / 50% OFF":
-    total_on = df.loc[mask_on, "costo_estimado"].sum()
-    total_off = df.loc[mask_off, "costo_estimado"].sum()
-    if total_on>0:
-        df.loc[mask_on, "asignado"] = (presupuesto*0.5) * (df.loc[mask_on, "costo_estimado"] / total_on)
-    if total_off>0:
-        df.loc[mask_off, "asignado"] = (presupuesto*0.5) * (df.loc[mask_off, "costo_estimado"] / total_off)
+df_export = preparar_plan_para_export_budget_simple(plan_presupuesto)
+csv_bytes = df_export.to_csv(index=False).encode("utf-8")
 
-st.markdown("### Detalle de cotización")
-st.dataframe(df, use_container_width=True, height=360)
+# Descarga de la cotización siempre disponible (independiente del modo)
+st.download_button(
+    "⬇️ Descargar cotización (CSV)",
+    data=csv_bytes,
+    file_name="cotizacion_plan.csv",
+    mime="text/csv",
+    key="btn_dl_quote_unico",
+)
 
-if st.button("Generar Orden (CSV)"):
-    out = df.copy()
-    out.to_csv("data/orden_compra.csv", index=False)
-    registrar_evento({"ts": pd.Timestamp.utcnow().isoformat(), "tipo":"orden_csv", "detalle":"orden_compra.csv", "valor": float(presupuesto)})
-    st.success("Orden generada en data/orden_compra.csv")
-    st.download_button("Descargar orden_compra.csv", data=out.to_csv(index=False).encode("utf-8"), file_name="orden_compra.csv", mime="text/csv")
+# Único botón de confirmación
+if st.button("Confirmar", key="btn_confirmar_unico"):
+    payload = {
+        "items": int(resumen["items"]),
+        "subtotal": float(resumen["subtotal"]),
+        "detalle": df_export.to_dict(orient="records"),
+        "modo": modo_accion.lower(),  # "cotizar" o "reservar"
+    }
+    evento = "cotizacion_budget" if modo_accion == "Cotizar" else "reserva_budget"
+    registrar_evento(evento, payload)
+    st.success(f"✅ {modo_accion} registrada en `data/events_log.jsonl`.")

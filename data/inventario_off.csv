@@ -1,4 +1,3 @@
-id,canal,soporte,plaza,vendedor,tarifa_unitaria,unidades,rating_promedio,fecha_desde,fecha_hasta
-201,TV,Spot 30s,CABA,CanalA,120000,8,5.0,2025-11-10,2025-11-11
-202,Radio,Mención,AMBA,RadioB,15000,25,0.6,2025-11-06,2025-11-20
-203,OOH,Cartel LED,CABA,OperadorC,250000,4,0.0,2025-11-02,2025-12-02
+medium,vendor,format,audience,impressions,grps,clicks,views,cost,start,end,rating
+TV,Canal A,Prime Time,Adults 18-49,,120,,,18000,2025-10-01,2025-10-07,4.0
+OOH,Via Pública,LED 6x3,Adults 18-49,350000,,, ,8000,2025-11-01,2025-11-15,3.8
