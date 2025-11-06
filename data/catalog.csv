@@ -1,0 +1,73 @@
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+on_rows = [
+    ["Display", "PML",          "Banner 300x250",     850000,  np.nan, 5100,  np.nan, 1800, 4.3, "ON"],
+    ["Display", "US Media",     "Billboard 970x250",  720000,  np.nan, 3800,  np.nan, 2100, 4.1, "ON"],
+    ["Video",   "Logan",        "Pre-roll 15s",       450000,  np.nan, 2700,  360000, 3200, 4.6, "ON"],
+    ["Video",   "Mercado Ads",  "In-stream 30s",      520000,  np.nan, 2900,  390000, 3400, 4.5, "ON"],
+    ["Rich Media","TikTok",     "Branded Effect",     600000,  np.nan, 4100,  np.nan, 4500, 4.4, "ON"],
+    ["Rich Media","Spotify",    "Audio + Display",    480000,  np.nan, 2500,  np.nan, 3900, 4.2, "ON"],
+    ["CTV",     "RappiAds",     "CTV Spot 15s",       380000,  np.nan, np.nan,310000, 7200, 4.5, "ON"],
+    ["CTV",     "PML",          "CTV Spot 30s",       420000,  np.nan, np.nan,350000, 7800, 4.6, "ON"],
+    ["DOOH",    "US Media",     "Pantalla LED 6x3",   550000,  np.nan, np.nan, np.nan, 6400, 4.0, "ON"],
+    ["DOOH",    "Logan",        "Vía Pública Digital",600000,  np.nan, np.nan, np.nan, 6800, 4.1, "ON"]
+]
+
+cols = ["medium","vendor","format","impressions","grps","clicks","views","cost","rating","medium_type"]
+on_df = pd.DataFrame(on_rows, columns=cols)
+
+# Leads SOLO para vendors con CPL: PML, US Media, Logan, TikTok (no Spotify, no RappiAds, no Mercado Ads)
+on_df["leads"] = np.nan
+cpl_vendors = {"PML","US Media","Logan","TikTok"}
+
+for idx, row in on_df.iterrows():
+    if row["vendor"] in cpl_vendors:
+        clicks = row["clicks"]
+        if pd.notna(clicks) and clicks > 0:
+            on_df.at[idx, "leads"] = int(round(clicks * 0.08))  # 8% de tasa de lead
+
+# Cálculos de costos normalizados
+on_df["CPM"] = np.where(on_df["impressions"].gt(0), (on_df["cost"] / on_df["impressions"]) * 1000, np.nan)
+on_df["CPC"] = np.where(on_df["clicks"].gt(0), on_df["cost"] / on_df["clicks"], np.nan)
+on_df["CPL"] = np.where(on_df["leads"].gt(0),  on_df["cost"] / on_df["leads"],  np.nan)
+on_df["CPA"] = np.nan
+
+# Redondeos
+for c in ["CPM","CPC","CPL"]:
+    on_df[c] = on_df[c].astype(float).round(2)
+
+Path("data").mkdir(exist_ok=True)
+on_df.to_csv("data/catalog_on.csv", index=False)
+print("✅ Inventario ON generado: data/catalog_on.csv")
+print(on_df)
+
+off_rows = [
+    ["TV",          "Telefe",          "Prime Time 30s",    2200000, 130, np.nan, np.nan, 42000, 4.5, "OFF"],
+    ["TV",          "Canal 13",        "Noticiero 20s",     1800000, 120, np.nan, np.nan, 39000, 4.4, "OFF"],
+    ["Radio",       "Radio Mitre",     "Mañana 30s",         800000,  85, np.nan, np.nan, 14000, 4.3, "OFF"],
+    ["Radio",       "La 100",          "Drive 30s",          700000,  80, np.nan, np.nan, 13500, 4.2, "OFF"],
+    ["Radio",       "Urbana Play",     "Tarde 30s",          600000,  75, np.nan, np.nan, 12000, 4.1, "OFF"],
+    ["Vía Pública", "Grupo Atlántida", "Cartel 8x3",         450000, np.nan, np.nan, np.nan, 18000, 4.0, "OFF"],
+    ["Vía Pública", "Flix Media",      "LED Urbano",         400000, np.nan, np.nan, np.nan, 16500, 3.9, "OFF"],
+    ["Cines",       "FilmSuez",        "Trailer 30s",        220000, np.nan, np.nan, np.nan, 19000, 4.4, "OFF"],
+    ["Cines",       "Flix Media",      "Spot 15s",           200000, np.nan, np.nan, np.nan, 17500, 4.3, "OFF"],
+    ["Vía Pública", "Publinet",        "Pantalla Gigante",   480000, np.nan, np.nan, np.nan, 20000, 4.1, "OFF"]
+]
+
+cols = ["medium","vendor","format","impressions","grps","clicks","views","cost","rating","medium_type"]
+off_df = pd.DataFrame(off_rows, columns=cols)
+
+# OFF solo CPM (no CPC/CPL/CPA)
+off_df["CPM"] = np.where(off_df["impressions"].gt(0), (off_df["cost"] / off_df["impressions"]) * 1000, np.nan)
+off_df["CPC"] = np.nan
+off_df["CPL"] = np.nan
+off_df["CPA"] = np.nan
+
+off_df["CPM"] = off_df["CPM"].astype(float).round(2)
+
+Path("data").mkdir(exist_ok=True)
+off_df.to_csv("data/catalog_off.csv", index=False)
+print("✅ Inventario OFF generado: data/catalog_off.csv")
+print(off_df)

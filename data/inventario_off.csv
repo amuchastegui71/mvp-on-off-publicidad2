@@ -1,3 +1,11 @@
-medium,vendor,format,audience,impressions,grps,clicks,views,cost,start,end,rating
-TV,Canal A,Prime Time,Adults 18-49,,120,,,18000,2025-10-01,2025-10-07,4.0
-OOH,Via Pública,LED 6x3,Adults 18-49,350000,,, ,8000,2025-11-01,2025-11-15,3.8
+medium,vendor,format,impressions,grps,clicks,views,cost,rating,medium_type
+TV,Telefe,Prime Time 30s,2200000,130,,,42000,4.5,OFF
+TV,Canal 13,Noticiero 20s,1800000,120,,,39000,3.4,OFF
+Radio,Radio Mitre,Mañana 30s,800000,85,,,14000,4.3,OFF
+Radio,La 100,Drive 30s,700000,80,,,13500,3.2,OFF
+Radio,Urbana Play,Tarde 30s,600000,75,,,12000,4.1,OFF
+Vía Pública,Grupo Atlántida,Cartel 8x3,450000,,,,18000,2.0,OFF
+Vía Pública,Flix Media,LED Urbano,400000,,,,16500,3.9,OFF
+Cines,FilmSuez,Trailer 30s,220000,,,,19000,3.4,OFF
+Cines,Flix Media,Spot 15s,200000,,,,17500,3.3,OFF
+Vía Pública,Publinet,Pantalla Gigante,480000,,,,20000,1.1,OFF

@@ -1,3 +1,11 @@
-medium,vendor,format,audience,impressions,grps,clicks,views,cost,start,end,rating
-Display,VendorX,300x250,Adults 18-49,250000,,1200,,1500,2025-10-01,2025-10-31,4.2
-Video,VendorY,Pre-roll,Adults 18-49,180000,,900,160000,2200,2025-10-05,2025-10-20,4.5
+medium,vendor,format,impressions,grps,clicks,views,cost,rating,medium_type,leads
+Display,PML,Banner 300x250,850000,,5100,,1800,3.3,ON,408
+Display,US Media,Billboard 970x250,720000,,3800,,2100,3.1,ON,304
+Video,Logan,Pre-roll 15s,450000,,2700,360000,3200,3.6,ON,216
+Video,Mercado Ads,In-stream 30s,520000,,2900,390000,3400,4.5,ON,
+Rich Media,TikTok,Branded Effect,600000,,4100,,4500,4.4,ON,328
+Rich Media,Spotify,Audio + Display,480000,,2500,,3900,4.2,ON,
+CTV,RappiAds,CTV Spot 15s,380000,,,310000,7200,4.5,ON,
+CTV,PML,CTV Spot 30s,420000,,,350000,7800,3.3,ON,
+DOOH,US Media,Pantalla LED 6x3,550000,,,,6400,3.1,ON,
+DOOH,Logan,Vía Pública Digital,600000,,,,6800,3.6,ON,

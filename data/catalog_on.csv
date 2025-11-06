@@ -1,0 +1,44 @@
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+on_rows = [
+    ["Display", "PML",          "Banner 300x250",     850000,  np.nan, 5100,  np.nan, 1800, 3.3, "ON"],
+    ["Display", "US Media",     "Billboard 970x250",  720000,  np.nan, 3800,  np.nan, 2100, 4.1, "ON"],
+    ["Video",   "Logan",        "Pre-roll 15s",       450000,  np.nan, 2700,  360000, 3200, 3.6, "ON"],
+    ["Video",   "Mercado Ads",  "In-stream 30s",      520000,  np.nan, 2900,  390000, 3400, 4.8, "ON"],
+    ["Rich Media","TikTok",     "Branded Effect",     600000,  np.nan, 4100,  np.nan, 4500, 4.7, "ON"],
+    ["Rich Media","Spotify",    "Audio + Display",    480000,  np.nan, 2500,  np.nan, 3900, 4.2, "ON"],
+    ["CTV",     "RappiAds",     "CTV Spot 15s",       380000,  np.nan, np.nan,310000, 7200, 4.5, "ON"],
+    ["CTV",     "PML",          "CTV Spot 30s",       420000,  np.nan, np.nan,350000, 7800, 3.6, "ON"],
+    ["DOOH",    "US Media",     "Apps Exclusivas",   550000,  np.nan, np.nan, np.nan, 6400, 4.0, "ON"],
+    ["DOOH",    "Logan",        "Vía Pública Digital",600000,  np.nan, np.nan, np.nan, 6800, 4.1, "ON"]
+]
+
+cols = ["medium","vendor","format","impressions","grps","clicks","views","cost","rating","medium_type"]
+on_df = pd.DataFrame(on_rows, columns=cols)
+
+# Leads SOLO para vendors con CPL: PML, US Media, Logan, TikTok (no Spotify, no RappiAds, no Mercado Ads)
+on_df["leads"] = np.nan
+cpl_vendors = {"PML","US Media","Logan","TikTok"}
+
+for idx, row in on_df.iterrows():
+    if row["vendor"] in cpl_vendors:
+        clicks = row["clicks"]
+        if pd.notna(clicks) and clicks > 0:
+            on_df.at[idx, "leads"] = int(round(clicks * 0.08))  # 8% de tasa de lead
+
+# Cálculos de costos normalizados
+on_df["CPM"] = np.where(on_df["impressions"].gt(0), (on_df["cost"] / on_df["impressions"]) * 1000, np.nan)
+on_df["CPC"] = np.where(on_df["clicks"].gt(0), on_df["cost"] / on_df["clicks"], np.nan)
+on_df["CPL"] = np.where(on_df["leads"].gt(0),  on_df["cost"] / on_df["leads"],  np.nan)
+on_df["CPA"] = np.nan
+
+# Redondeos
+for c in ["CPM","CPC","CPL"]:
+    on_df[c] = on_df[c].astype(float).round(2)
+
+Path("data").mkdir(exist_ok=True)
+on_df.to_csv("data/catalog_on.csv", index=False)
+print("✅ Inventario ON generado: data/catalog_on.csv")
+print(on_df)
