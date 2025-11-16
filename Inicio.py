@@ -16,6 +16,6 @@ y se propone centralizar inventarios, métricas y procesos para mejorar la efici
 del ecosistema publicitario argentino.
 
 Usá el menú lateral para navegar entre las secciones:  
-**Inicio**, **Marketplace**, **Planner**, **Dashboard** y **Analítica**.
+**Inicio**, **Marketplace**, **Planificador**, **Dashboard** y **Analítica**.
 """)
 

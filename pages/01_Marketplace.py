@@ -78,7 +78,7 @@ def load_integrated_catalog() -> pd.DataFrame:
 
     # medium_type si falta
     if "medium_type" not in df_raw.columns or df_raw["medium_type"].isna().all():
-        off_set = {"TV","Radio","Vía Pública","Via Pública","OOH","Cines","Print"}
+        off_set = {"TV","Radio","Vía Pública","Via Pública","OOH","Cineñs","Print"}
         df_raw["medium_type"] = np.where(df_raw["medium"].isin(off_set), "OFF", "ON")
 
     # Derivados de costos
@@ -246,7 +246,7 @@ selected_ids = st.multiselect(
     key="ms_ids"
 )
 
-if st.button("Agregar al Planner", key="btn_add_planner"):
+if st.button("Agregar a la planificación", key="btn_add_planner"):
     if "basket" not in st.session_state:
         st.session_state.basket = pd.DataFrame()
     take = display_idx[display_idx["row_id"].astype(str).isin(selected_ids)].index

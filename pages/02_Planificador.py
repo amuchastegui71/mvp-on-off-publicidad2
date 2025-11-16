@@ -13,7 +13,7 @@ from utils import (
 )
 
 st.set_page_config(page_title="Cotizar y Reservar", layout="wide")
-st.title("Cotizar y Reservar (por presupuesto)")
+st.title("Cotizar y Reservar")
 
 # ------------------------------------------------------------------------------
 # Helpers

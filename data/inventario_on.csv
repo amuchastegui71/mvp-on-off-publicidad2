@@ -1,11 +1,14 @@
 medium,vendor,format,impressions,grps,clicks,views,cost,rating,medium_type,leads
-Display,PML,Banner 300x250,850000,,5100,,1800,3.3,ON,408
-Display,US Media,Billboard 970x250,720000,,3800,,2100,3.1,ON,304
-Video,Logan,Pre-roll 15s,450000,,2700,360000,3200,3.6,ON,216
-Video,Mercado Ads,In-stream 30s,520000,,2900,390000,3400,4.5,ON,
-Rich Media,TikTok,Branded Effect,600000,,4100,,4500,4.4,ON,328
-Rich Media,Spotify,Audio + Display,480000,,2500,,3900,4.2,ON,
-CTV,RappiAds,CTV Spot 15s,380000,,,310000,7200,4.5,ON,
-CTV,PML,CTV Spot 30s,420000,,,350000,7800,3.3,ON,
-DOOH,US Media,Pantalla LED 6x3,550000,,,,6400,3.1,ON,
-DOOH,Logan,Vía Pública Digital,600000,,,,6800,3.6,ON,
+Display,PML,Happn,850000,,5100,,1800,3.3,ON,408
+Video,PML,Happn,850000,,5100,,1800,2.3,ON,408
+Display,US Media,Tinder,720000,,3800,,2100,3.1,ON,304
+Rich Media,Logan,Pre Roll,450000,,2700,360000,3200,2.6,ON,216
+Video,Mercado Ads,Retail Media,520000,,2900,390000,3400,4.5,ON,
+Video,TikTok,Branding,600000,,4100,,4500,4.4,ON,328
+Audio,Spotify,15s,480000,,2500,,3900,4.2,ON,
+Patrocinio,RappiAds,24hs,380000,,,310000,7200,4.5,ON,
+CTV,PML,CTV 30s,420000,,,350000,7800,3.3,ON,
+DOOH,TapTap,Pantalla LED,550000,,,,6400,3.1,ON,
+DOOH,Beeyond,Rutero,600000,,,,6800,2.6,ON,
+Display,US Media,WeTransfer,720000,,3800,,2100,3.1,ON,304
+Video,US Media,WeTransfer,720000,,3800,,2100,1.1,ON,304
